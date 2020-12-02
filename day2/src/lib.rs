@@ -20,22 +20,16 @@ pub fn parse_line(line: &str) -> Option<Line> {
         static ref RE: Regex = Regex::new(
             r"^(?P<min_num>\d+)-(?P<max_num>\d+) (?P<letter>\w): (?P<password>\w+)$").unwrap();
     }
-    RE.captures(line).map(|caps| {
-        let min_num = caps.name("min_num").unwrap();
-        let max_num = caps.name("max_num").unwrap();
-        let letter = caps.name("letter").unwrap();
-        let password = caps.name("password").unwrap();
-
-        let min_num = min_num.as_str().parse::<i32>().unwrap();
-        let max_num = max_num.as_str().parse::<i32>().unwrap();
-        let letter = letter.as_str().chars().next().unwrap();
-        let password = password.as_str();
-        Line {
-            min_num,
-            max_num,
-            letter,
-            password,
-        }
+    let caps = RE.captures(line)?;
+    let min_num = caps.name("min_num")?.as_str().parse::<i32>().ok()?;
+    let max_num = caps.name("max_num")?.as_str().parse::<i32>().ok()?;
+    let letter = caps.name("letter")?.as_str().chars().next()?;
+    let password = caps.name("password")?.as_str();
+    Some(Line {
+        min_num,
+        max_num,
+        letter,
+        password,
     })
 }
 
@@ -53,5 +47,6 @@ mod tests {
             password: "abcde",
         };
         assert_eq!(parse_line(line), Some(expected));
+        assert_eq!(parse_line("Not a valid line"), None);
     }
 }
